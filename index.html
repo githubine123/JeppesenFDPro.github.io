@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight Dashboard</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+
+body{
+margin:0;
+font-family:-apple-system, BlinkMacSystemFont, sans-serif;
+background:#0b0b0b;
+color:white;
+}
+
+.tabs{
+display:flex;
+background:#111;
+border-bottom:1px solid #333;
+}
+
+.tab{
+flex:1;
+padding:14px;
+text-align:center;
+cursor:pointer;
+font-size:14px;
+}
+
+.tab:hover{
+background:#333;
+}
+
+iframe{
+width:100%;
+height:calc(100vh - 50px);
+border:none;
+}
+
+.active{
+background:#1f1f1f;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="tabs">
+
+<div class="tab active" onclick="openSite(this,'https://planner.flightsimulator.com')">
+Flight Planner
+</div>
+
+<div class="tab" onclick="openSite(this,'https://dispatch.simbrief.com')">
+SimBrief
+</div>
+
+<div class="tab" onclick="openSite(this,'https://vatsim-radar.com')">
+VATSIM Radar
+</div>
+
+<div class="tab" onclick="openSite(this,'https://ifrbuddy.degnedict.com')">
+IFR Buddy
+</div>
+
+<div class="tab" onclick="openSite(this,'https://chartfox.org')">
+ChartFox
+</div>
+
+</div>
+
+<iframe id="viewer" src="https://planner.flightsimulator.com"></iframe>
+
+<script>
+
+function openSite(tab,url){
+
+let tabs=document.querySelectorAll(".tab");
+tabs.forEach(t=>t.classList.remove("active"));
+
+tab.classList.add("active");
+
+document.getElementById("viewer").src=url;
+
+}
+
+</script>
+
+</body>
+</html>
