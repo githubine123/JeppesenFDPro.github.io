@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="FlightSim Hub">
+<title>FlightSim Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#18181b;--s1:#202024;--s2:#28282d;--s3:#313138;--s4:#3c3c44;
+  --bd:#3a3a44;--bd2:#4e4e5a;
+  --blue:#3d8ef0;--blue2:#2a6bc4;--bluebg:rgba(61,142,240,.12);--bluebdr:rgba(61,142,240,.28);
+  --orange:#f07d1a;--orangebg:rgba(240,125,26,.1);
+  --green:#30d158;--greenbg:rgba(48,209,88,.1);
+  --red:#ff453a;--redbg:rgba(255,69,58,.1);
+  --txt:#e2e2ea;--txt2:#8e8e9a;--txt3:#56565e;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100dvh}
+
+/* ══ TOP TOOLBAR ══ */
+.topbar{height:50px;background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 10px;gap:2px;flex-shrink:0;z-index:50}
+.tb-brand{display:flex;align-items:center;gap:9px;padding:0 12px 0 4px;border-right:1px solid var(--bd);margin-right:4px;flex-shrink:0}
+.tb-brand-badge{width:32px;height:32px;border-radius:5px;background:linear-gradient(140deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 1px 6px rgba(61,142,240,.35)}
+.tb-brand-text{line-height:1.2}
+.tb-brand-name{font-size:13px;font-weight:600;color:var(--txt)}
+.tb-brand-sub{font-family:var(--mono);font-size:8.5px;color:var(--txt3);letter-spacing:.6px;text-transform:uppercase}
+.tb-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px 8px;border:none;border-radius:5px;background:none;color:var(--txt2);cursor:pointer;transition:all .15s;min-width:50px}
+.tb-btn:hover{background:var(--s2);color:var(--txt)}
+.tb-btn.active{background:var(--bluebg);color:var(--blue);border:1px solid var(--bluebdr)}
+.tb-btn .tbi{font-size:18px;line-height:1}
+.tb-btn .tbl{font-family:var(--mono);font-size:8px;font-weight:500;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap}
+.tb-spacer{flex:1}
+.tb-status{display:flex;align-items:center;gap:14px;padding:0 10px 0 14px;border-left:1px solid var(--bd)}
+.ts-item{display:flex;flex-direction:column;align-items:center;gap:1px}
+.ts-lbl{font-family:var(--mono);font-size:7.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px}
+.ts-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green)}
+.ts-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ══ MAIN BODY ══ */
+.body{display:flex;flex:1;overflow:hidden}
+
+/* ══ LEFT SIDEBAR ══ */
+.sidebar{width:200px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sb-section{padding:10px 0 4px}
+.sb-hdr{font-family:var(--mono);font-size:8.5px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:1.3px;padding:3px 13px 7px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;border-left:2px solid transparent;color:var(--txt2);font-size:12.5px;transition:background .1s,color .1s}
+.sb-item:hover{background:var(--s2);color:var(--txt)}
+.sb-item.active{background:var(--bluebg);border-left-color:var(--blue);color:var(--blue);font-weight:500}
+.sb-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-count{margin-left:auto;font-family:var(--mono);font-size:9.5px;background:var(--s3);color:var(--txt3);padding:1px 6px;border-radius:10px;border:1px solid var(--bd)}
+.sb-item.active .sb-count{background:var(--bluebg);color:var(--blue);border-color:var(--bluebdr)}
+.sb-div{height:1px;background:var(--bd);margin:5px 0}
+
+/* ══ MAIN PANE ══ */
+.pane{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.panel.active{display:flex}
+
+/* ══ WEBSITES SPLIT LAYOUT ══ */
+.ws-split{display:flex;flex:1;overflow:hidden}
+
+/* Left list column */
+.ws-list-col{
+  width:320px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  border-right:1px solid var(--bd);
+  background:var(--bg);
+  overflow:hidden;
+}
+.ws-list-header{
+  background:var(--s1);border-bottom:1px solid var(--bd);
+  padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.ws-list-title{font-size:13px;font-weight:600;color:var(--txt)}
+.ws-list-sub{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:1px}
+.ws-search{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:5px 9px;margin:8px 10px 4px}
+.ws-search input{background:none;border:none;outline:none;color:var(--txt);font-family:var(--sans);font-size:12px;width:100%}
+.ws-search input::placeholder{color:var(--txt3)}
+.ws-list-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* Site rows */
+.grp-hdr{padding:5px 12px;font-family:var(--mono);font-size:8.5px;color:var(--blue);text-transform:uppercase;letter-spacing:1.4px;background:var(--s1);border-bottom:1px solid var(--bd);border-top:1px solid var(--bd);display:flex;align-items:center;gap:6px}
+.grp-hdr::before{content:'';width:3px;height:10px;background:var(--blue);border-radius:1.5px;display:inline-block}
+
+.site-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;cursor:pointer;
+  border-bottom:1px solid rgba(58,58,68,.5);
+  transition:background .1s;
+  border-left:2px solid transparent;
+}
+.site-row:hover{background:var(--s2)}
+.site-row.selected{background:var(--bluebg);border-left-color:var(--blue)}
+.site-ico{width:28px;height:28px;border-radius:5px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.site-info{flex:1;min-width:0}
+.site-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-note{font-family:var(--mono);font-size:10px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.site-del{background:none;border:none;color:var(--txt3);font-size:13px;cursor:pointer;padding:4px;border-radius:4px;flex-shrink:0;opacity:0;transition:all .12s}
+.site-row:hover .site-del{opacity:1}
+.site-del:hover{color:var(--red);background:var(--redbg)}
+
+.ws-add-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  margin:10px;padding:9px;border-radius:5px;
+  border:1px dashed var(--bd2);background:none;color:var(--txt3);
+  font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;
+  transition:all .15s;
+}
+.ws-add-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bluebg)}
+
+/* Right viewer */
+.ws-viewer{
+  flex:1;display:flex;flex-direction:column;
+  background:var(--bg);overflow:hidden;
+}
+.viewer-bar{
+  height:40px;background:var(--s1);border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:10px;padding:0 12px;flex-shrink:0;
+}
+.viewer-title{font-size:13px;font-weight:600;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.viewer-url{font-family:var(--mono);font-size:10px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.viewer-open{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:none;color:var(--txt2);cursor:pointer;transition:all .12s;white-space:nowrap}
+.viewer-open:hover{border-color:var(--blue);color:var(--blue);background:var(--bluebg)}
+
+.viewer-frame{flex:1;border:none;width:100%;background:#fff}
+
+.viewer-placeholder{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:12px;color:var(--txt3);text-align:center;padding:40px;
+}
+.vp-icon{font-size:52px;opacity:.25}
+.vp-title{font-size:16px;font-weight:600;color:var(--txt2)}
+.vp-sub{font-size:12px;line-height:1.7;max-width:300px}
+
+/* blocked overlay */
+.blocked-msg{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:14px;padding:40px;text-align:center;
+}
+.blocked-ico{font-size:48px;opacity:.3}
+.blocked-title{font-size:15px;font-weight:600;color:var(--txt2)}
+.blocked-sub{font-size:12px;color:var(--txt3);line-height:1.7;max-width:320px}
+.btn-open-ext{
+  display:flex;align-items:center;gap:7px;
+  padding:10px 20px;background:var(--blue);color:#fff;
+  border:none;border-radius:6px;font-family:var(--sans);
+  font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;
+}
+.btn-open-ext:active{opacity:.75}
+
+/* ══ PDF PANEL ══ */
+.pdf-panel{display:flex;flex:1;overflow:hidden}
+.pdf-list-col{width:320px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--bd);background:var(--bg);overflow:hidden}
+.pdf-list-header{background:var(--s1);border-bottom:1px solid var(--bd);padding:8px 12px;flex-shrink:0}
+.pdf-list-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pdf-row{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(58,58,68,.5);transition:background .1s;border-left:2px solid transparent}
+.pdf-row:hover{background:var(--s2)}
+.pdf-row.selected{background:var(--bluebg);border-left-color:var(--blue)}
+.pdf-ico{width:28px;height:34px;border-radius:4px;background:var(--redbg);border:1px solid rgba(255,69,58,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;position:relative}
+.pdf-ext{position:absolute;bottom:2px;font-family:var(--mono);font-size:6px;color:var(--red);letter-spacing:.5px}
+.pdf-viewer{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+
+/* ══ CHECKLISTS PANEL ══ */
+.cl-pane-bar{background:var(--s1);border-bottom:1px solid var(--bd);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.cl-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;display:flex;flex-direction:column;gap:10px}
+.cl-card{background:var(--s1);border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.cl-card-hdr{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid transparent}
+.cl-card-hdr:hover{background:var(--s2)}
+.cl-card-hdr.open{border-bottom-color:var(--bd)}
+.cl-info{flex:1;min-width:0}
+.cl-name{font-size:13.5px;font-weight:600;color:var(--txt)}
+.cl-meta{font-family:var(--mono);font-size:9.5px;color:var(--txt3);margin-top:2px}
+.cl-progress{position:relative;width:38px;height:38px;flex-shrink:0}
+.cl-progress svg{transform:rotate(-90deg)}
+.prg-bg{fill:none;stroke:var(--s4);stroke-width:3}
+.prg-fg{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.prg-fg.done{stroke:var(--green)}
+.prg-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8.5px;color:var(--txt2)}
+.cl-chevron{color:var(--txt3);font-size:11px;transition:transform .2s;flex-shrink:0}
+.cl-chevron.open{transform:rotate(180deg)}
+.cl-item{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid rgba(58,58,68,.4)}
+.cl-item:last-child{border-bottom:none}
+.cl-item:hover{background:rgba(61,142,240,.04)}
+.check-ring{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--bd2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s;font-size:11px;color:transparent}
+.cl-item.done .check-ring{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 0 8px rgba(48,209,88,.4)}
+.cl-item-lbl{font-size:12.5px;flex:1;transition:all .15s}
+.cl-item.done .cl-item-lbl{color:var(--txt3);text-decoration:line-through}
+.cl-footer{display:flex;gap:8px;padding:8px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--bd)}
+.btn-ghost{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.5px;padding:5px 10px;border-radius:4px;border:1px solid var(--bd);background:none;color:var(--txt3);cursor:pointer;transition:all .12s}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);background:var(--bluebg)}
+.btn-ghost.danger:hover{border-color:var(--red);color:var(--red);background:var(--redbg)}
+.btn-ghost.warn:hover{border-color:var(--orange);color:var(--orange);background:var(--orangebg)}
+
+/* ══ EMPTY ══ */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--txt3);padding:40px;text-align:center}
+.empty-ico{font-size:44px;opacity:.25}
+.empty h3{font-size:15px;font-weight:600;color:var(--txt2)}
+.empty p{font-size:12px;line-height:1.6;max-width:250px}
+
+/* ══ MODAL ══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;z-index:300;backdrop-filter:blur(6px);animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--s1);border:1px solid var(--bd);border-radius:12px 12px 0 0;width:100%;max-width:560px;padding:18px 20px 36px;animation:sheetUp .22s ease;max-height:88vh;overflow-y:auto}
+@keyframes sheetUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.sheet-handle{width:36px;height:4px;background:var(--bd2);border-radius:2px;margin:0 auto 16px}
+.sheet-title{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.sheet-title::before{content:'';width:3px;height:16px;background:var(--blue);border-radius:2px;display:inline-block}
+.form-row{margin-bottom:13px}
+.form-lbl{font-family:var(--mono);font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px}
+.form-inp,.form-sel,.form-ta{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:9px 12px;color:var(--txt);font-family:var(--sans);font-size:13.5px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.form-inp:focus,.form-sel:focus,.form-ta:focus{border-color:var(--blue)}
+.form-ta{resize:vertical;min-height:90px}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet-actions{display:flex;gap:10px;margin-top:18px}
+.btn-cancel{padding:11px 18px;background:none;border:1px solid var(--bd);border-radius:5px;color:var(--txt2);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+.btn-save{flex:1;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:5px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-save:active{opacity:.75}
+.btn-prim{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--blue);color:#fff;border:none;border-radius:5px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.icon-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.icon-opt{width:38px;height:38px;border-radius:5px;border:1.5px solid var(--bd);background:var(--s2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s}
+.icon-opt.sel{border-color:var(--blue);background:var(--bluebg)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px}
+
+/* Mobile: collapse list col */
+@media(max-width:640px){
+  .sidebar{width:48px}
+  .sb-hdr,.sb-item span:not(.sb-icon),.sb-count{display:none}
+  .sb-item{justify-content:center;padding:10px}
+  .ws-list-col,.pdf-list-col{width:260px}
+  .tb-brand-text{display:none}
+  .tb-btn .tbl{display:none}
+  .tb-btn{min-width:38px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOOLBAR -->
+  <div class="topbar">
+    <div class="tb-brand">
+      <div class="tb-brand-badge">✈</div>
+      <div class="tb-brand-text">
+        <div class="tb-brand-name">FlightSim Hub</div>
+        <div class="tb-brand-sub">EFB · Pilot Resources</div>
+      </div>
+    </div>
+    <button class="tb-btn active" id="tbtn-websites" onclick="setTab('websites',this)"><span class="tbi">🌐</span><span class="tbl">Websites</span></button>
+    <button class="tb-btn" id="tbtn-pdfs" onclick="setTab('pdfs',this)"><span class="tbi">📄</span><span class="tbl">PDFs</span></button>
+    <button class="tb-btn" id="tbtn-checklists" onclick="setTab('checklists',this)"><span class="tbi">✅</span><span class="tbl">Checklists</span></button>
+    <div class="tb-spacer"></div>
+    <div class="tb-status">
+      <div class="ts-item"><div class="ts-dot"></div></div>
+      <div class="ts-item"><div class="ts-lbl">UTC</div><div class="ts-val" id="clock">--:--</div></div>
+      <div class="ts-item"><div class="ts-lbl">Items</div><div class="ts-val" id="item-count">0</div></div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar"></div>
+
+    <!-- PANE -->
+    <div class="pane">
+
+      <!-- ── WEBSITES PANEL ── -->
+      <div class="panel active" id="panel-websites">
+        <div class="ws-split">
+
+          <!-- List column -->
+          <div class="ws-list-col">
+            <div class="ws-list-header">
+              <div>
+                <div class="ws-list-title">Websites</div>
+                <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:1px">BROWSER BOOKMARKS</div>
+              </div>
+            </div>
+            <div class="ws-search">
+              <span style="color:var(--txt3);font-size:12px">⌕</span>
+              <input type="text" id="ws-search" placeholder="Search…" oninput="renderWS()">
+            </div>
+            <div class="ws-list-body" id="ws-body"></div>
+            <button class="ws-add-btn" onclick="openModal('modal-ws')">＋ Add Website</button>
+          </div>
+
+          <!-- Viewer column -->
+          <div class="ws-viewer" id="ws-viewer">
+            <div class="viewer-bar" id="viewer-bar" style="display:none">
+              <span id="viewer-title" class="viewer-title"></span>
+              <span id="viewer-url-lbl" class="viewer-url"></span>
+              <button class="viewer-open" id="viewer-ext-btn" onclick="openCurrentExt()">↗ Open in Safari</button>
+            </div>
+            <!-- Placeholder -->
+            <div class="viewer-placeholder" id="viewer-placeholder">
+              <div class="vp-icon">🌐</div>
+              <div class="vp-title">Select a website</div>
+              <div class="vp-sub">Choose a site from the list on the left to load it here.</div>
+            </div>
+            <!-- Blocked message (hidden by default) -->
+            <div class="blocked-msg" id="viewer-blocked" style="display:none">
+              <div class="blocked-ico">🔒</div>
+              <div class="blocked-title" id="blocked-name"></div>
+              <div class="blocked-sub">This site's security policy prevents it from loading inside another app. Tap the button below to open it in Safari instead.</div>
+              <button class="btn-open-ext" onclick="openCurrentExt()">↗ Open in Safari</button>
+            </div>
+            <!-- iframe -->
+            <iframe id="ws-frame" class="viewer-frame" style="display:none" src="about:blank"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"
+              allow="fullscreen"
+              onload="onFrameLoad(this)"
+              onerror="showBlocked()">
+            </iframe>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── PDFs PANEL ── -->
+      <div class="panel" id="panel-pdfs">
+        <div class="pdf-panel">
+
+          <div class="pdf-list-col">
+            <div class="pdf-list-header">
+              <div class="ws-list-title">PDF Library</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:1px">DOCUMENTS &amp; CHARTS</div>
+            </div>
+            <div class="ws-search" style="margin:8px 10px 4px">
+              <span style="color:var(--txt3);font-size:12px">⌕</span>
+              <input type="text" id="pdf-search" placeholder="Search…" oninput="renderPDF()">
+            </div>
+            <div class="pdf-list-body" id="pdf-body"></div>
+            <button class="ws-add-btn" onclick="openModal('modal-pdf')">＋ Add PDF</button>
+          </div>
+
+          <div class="pdf-viewer" id="pdf-viewer">
+            <div class="viewer-bar" id="pdf-viewer-bar" style="display:none">
+              <span id="pdf-viewer-title" class="viewer-title"></span>
+              <span id="pdf-viewer-url" class="viewer-url"></span>
+              <button class="viewer-open" id="pdf-ext-btn" onclick="openCurrentPDFExt()">↗ Open in Safari</button>
+            </div>
+            <div class="viewer-placeholder" id="pdf-placeholder">
+              <div class="vp-icon">📄</div>
+              <div class="vp-title">Select a PDF</div>
+              <div class="vp-sub">Choose a document from the list to view it here.</div>
+            </div>
+            <iframe id="pdf-frame" class="viewer-frame" style="display:none" src="about:blank"></iframe>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── CHECKLISTS PANEL ── -->
+      <div class="panel" id="panel-checklists">
+        <div class="cl-pane-bar">
+          <div><div class="ws-list-title">Checklists</div><div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:1px">PROCEDURES &amp; FLOWS</div></div>
+          <div class="tb-spacer"></div>
+          <button class="btn-prim" onclick="openModal('modal-cl')">＋ New Checklist</button>
+        </div>
+        <div class="cl-body" id="cl-body"></div>
+      </div>
+
+    </div><!-- /pane -->
+  </div><!-- /body -->
+</div>
+
+<!-- MODAL: Add Website -->
+<div class="overlay" id="modal-ws" style="display:none" onclick="bgClose(event,'modal-ws')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add Website</div>
+    <div class="form-2">
+      <div class="form-row"><label class="form-lbl">Name</label><input class="form-inp" id="wn" placeholder="SkyVector" type="text"></div>
+      <div class="form-row"><label class="form-lbl">Category</label><select class="form-sel" id="wcat"><option>Navigation</option><option>Weather</option><option>Flight Planning</option><option>Online ATC</option><option>Live Traffic</option><option>Reference</option><option>Training</option><option>General</option></select></div>
+    </div>
+    <div class="form-row"><label class="form-lbl">URL</label><input class="form-inp" id="wu" placeholder="https://skyvector.com" type="url" autocapitalize="none" autocorrect="off"></div>
+    <div class="form-row"><label class="form-lbl">Notes (optional)</label><input class="form-inp" id="wno" placeholder="Quick description…"></div>
+    <div class="form-row"><label class="form-lbl">Icon</label><div class="icon-grid" id="ws-icon-grid"></div></div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-ws')">Cancel</button>
+      <button class="btn-save" onclick="saveWS()">Save Website</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add PDF -->
+<div class="overlay" id="modal-pdf" style="display:none" onclick="bgClose(event,'modal-pdf')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add PDF</div>
+    <div class="form-2">
+      <div class="form-row"><label class="form-lbl">Document Name</label><input class="form-inp" id="pn" placeholder="C172 POH" type="text"></div>
+      <div class="form-row"><label class="form-lbl">Category</label><select class="form-sel" id="pcat"><option>Aircraft Manuals</option><option>Navigation Charts</option><option>Approach Plates</option><option>Training Material</option><option>Regulations</option><option>Checklists</option><option>General</option></select></div>
+    </div>
+    <div class="form-row"><label class="form-lbl">PDF URL</label><input class="form-inp" id="pu" placeholder="https://example.com/manual.pdf" type="url" autocapitalize="none" autocorrect="off"></div>
+    <div class="form-row"><label class="form-lbl">Notes (optional)</label><input class="form-inp" id="pno" placeholder="Quick description…"></div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-pdf')">Cancel</button>
+      <button class="btn-save" onclick="savePDF()">Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: New Checklist -->
+<div class="overlay" id="modal-cl" style="display:none" onclick="bgClose(event,'modal-cl')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">New Checklist</div>
+    <div class="form-2">
+      <div class="form-row"><label class="form-lbl">Checklist Name</label><input class="form-inp" id="cn" placeholder="Pre-Flight" type="text"></div>
+      <div class="form-row"><label class="form-lbl">Aircraft / Category</label><input class="form-inp" id="cc" placeholder="Cessna 172"></div>
+    </div>
+    <div class="form-row"><label class="form-lbl">Items — one per line</label><textarea class="form-ta" id="ci" placeholder="Fuel quantity checked&#10;Oil level OK&#10;Controls free &amp; correct&#10;Altimeter set"></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-cl')">Cancel</button>
+      <button class="btn-save" onclick="saveCL()">Create Checklist</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Checklist Item -->
+<div class="overlay" id="modal-item" style="display:none" onclick="bgClose(event,'modal-item')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add Item</div>
+    <input type="hidden" id="item-clid">
+    <div class="form-row"><label class="form-lbl">Item Description</label><input class="form-inp" id="item-txt" placeholder="e.g. Fuel selector BOTH" type="text"></div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-item')">Cancel</button>
+      <button class="btn-save" onclick="saveItem()">Add Item</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ICONS=['🗺️','✈️','🛩️','🌤️','⛅','📡','🎮','📋','📰','🎓','🌐','🛫','🛬','⚡','🔧'];
+let selIcon=ICONS[0], openCLs={}, activeTab='websites', activeCat=null;
+let currentSiteURL='', currentPDFURL='', selectedSiteId=null, selectedPDFId=null;
+let D={websites:[],pdfs:[],checklists:[]};
+const uid=()=>Math.random().toString(36).slice(2,11);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ── SITES THAT ARE KNOWN TO ALLOW IFRAME EMBEDDING ──
+// Most major sites block iframes via X-Frame-Options.
+// We still attempt to load all of them; the frame detects failure via CSP/sandbox.
+// Users can always tap "Open in Safari" as fallback.
+
+function save(){try{localStorage.setItem('fsh5',JSON.stringify(D))}catch(e){}}
+function load(){
+  try{const x=JSON.parse(localStorage.getItem('fsh5')||'{}');D.websites=x.websites||[];D.pdfs=x.pdfs||[];D.checklists=x.checklists||[]}catch(e){}
+  if(!D.websites.length) D.websites=[
+    {id:uid(),name:'SkyVector',url:'https://skyvector.com',cat:'Navigation',icon:'🗺️',notes:'VFR/IFR charts & flight planning'},
+    {id:uid(),name:'SimBrief',url:'https://www.simbrief.com',cat:'Flight Planning',icon:'✈️',notes:'AI dispatch & OFP generation'},
+    {id:uid(),name:'Aviation Weather',url:'https://aviationweather.gov',cat:'Weather',icon:'🌤️',notes:'METAR · TAF · PIREPs · Sigmet'},
+    {id:uid(),name:'FlightAware',url:'https://flightaware.com',cat:'Live Traffic',icon:'📡',notes:'Real-time flight tracking'},
+    {id:uid(),name:'Navigraph Charts',url:'https://charts.navigraph.com',cat:'Navigation',icon:'🗺️',notes:'SIDs · STARs · Approach plates'},
+    {id:uid(),name:'VATSIM',url:'https://www.vatsim.net',cat:'Online ATC',icon:'📡',notes:'Virtual ATC worldwide network'},
+    {id:uid(),name:'Little Navmap',url:'https://albar965.github.io/littlenavmap.html',cat:'Navigation',icon:'🛩️',notes:'Free open-source flight planner'},
+    {id:uid(),name:'IVAO',url:'https://www.ivao.aero',cat:'Online ATC',icon:'📡',notes:'International virtual AO network'},
+    {id:uid(),name:'CheckWX METAR',url:'https://api.checkwx.com',cat:'Weather',icon:'⛅',notes:'Clean METAR decoder'},
+    {id:uid(),name:'Skew-T Charts',url:'https://rucsoundings.noaa.gov',cat:'Weather',icon:'🌤️',notes:'Upper-air sounding charts'},
+  ];
+  if(!D.checklists.length) D.checklists=[
+    {id:uid(),name:'Pre-Flight',cat:'Cessna 172',items:[
+      {id:uid(),lbl:'Fuel quantity — checked & sufficient',done:false},
+      {id:uid(),lbl:'Oil level — 6–8 qt',done:false},
+      {id:uid(),lbl:'Control surfaces — free & correct',done:false},
+      {id:uid(),lbl:'Altimeter — set to field elevation',done:false},
+      {id:uid(),lbl:'Flaps — set for departure',done:false},
+      {id:uid(),lbl:'Trim — set to neutral',done:false},
+      {id:uid(),lbl:'Avionics — ON & self-test complete',done:false},
+      {id:uid(),lbl:'Pitot heat — tested',done:false},
+    ]},
+    {id:uid(),name:'Engine Start',cat:'Cessna 172',items:[
+      {id:uid(),lbl:'Master switch — ON',done:false},
+      {id:uid(),lbl:'Beacon light — ON',done:false},
+      {id:uid(),lbl:'Mixture — RICH',done:false},
+      {id:uid(),lbl:'Throttle — cracked 1/4"',done:false},
+      {id:uid(),lbl:'Propeller area — CLEAR',done:false},
+      {id:uid(),lbl:'Starter — engage',done:false},
+      {id:uid(),lbl:'Oil pressure — in green (30 sec)',done:false},
+    ]},
+    {id:uid(),name:'Before Takeoff',cat:'Cessna 172',items:[
+      {id:uid(),lbl:'Run-up — complete',done:false},
+      {id:uid(),lbl:'Transponder — ALT mode',done:false},
+      {id:uid(),lbl:'Strobes & nav lights — ON',done:false},
+      {id:uid(),lbl:'Fuel selector — BOTH',done:false},
+      {id:uid(),lbl:'Flight instruments — checked & set',done:false},
+      {id:uid(),lbl:'Departure time — noted',done:false},
+    ]},
+    {id:uid(),name:'After Landing',cat:'Cessna 172',items:[
+      {id:uid(),lbl:'Flaps — UP',done:false},
+      {id:uid(),lbl:'Transponder — STBY',done:false},
+      {id:uid(),lbl:'Landing light — OFF',done:false},
+      {id:uid(),lbl:'Carb heat — OFF',done:false},
+      {id:uid(),lbl:'Fuel selector — BOTH',done:false},
+    ]},
+  ];
+}
+
+// ── Clock
+function tick(){const n=new Date();document.getElementById('clock').textContent=String(n.getUTCHours()).padStart(2,'0')+':'+String(n.getUTCMinutes()).padStart(2,'0')}
+setInterval(tick,1000);tick();
+function updateCount(){document.getElementById('item-count').textContent=D.websites.length+D.pdfs.length+D.checklists.length}
+
+// ── Tabs
+function setTab(tab,btn){
+  activeTab=tab;activeCat=null;
+  document.querySelectorAll('.tb-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  render();
+}
+
+// ── Sidebar
+function buildSidebar(){
+  const getCats=arr=>[...new Set(arr.map(x=>x.cat))].sort();
+  const tabCats=activeTab==='websites'?getCats(D.websites):activeTab==='pdfs'?getCats(D.pdfs):getCats(D.checklists);
+  let h=`<div class="sb-section"><div class="sb-hdr">Views</div>
+    <div class="sb-item ${activeTab==='websites'?'active':''}" onclick="setTab('websites',document.getElementById('tbtn-websites'))"><span class="sb-icon">🌐</span><span>Websites</span><span class="sb-count">${D.websites.length}</span></div>
+    <div class="sb-item ${activeTab==='pdfs'?'active':''}" onclick="setTab('pdfs',document.getElementById('tbtn-pdfs'))"><span class="sb-icon">📄</span><span>PDF Library</span><span class="sb-count">${D.pdfs.length}</span></div>
+    <div class="sb-item ${activeTab==='checklists'?'active':''}" onclick="setTab('checklists',document.getElementById('tbtn-checklists'))"><span class="sb-icon">✅</span><span>Checklists</span><span class="sb-count">${D.checklists.length}</span></div>
+  </div>`;
+  if(tabCats.length){
+    h+=`<div class="sb-div"></div><div class="sb-section"><div class="sb-hdr">Filter</div>`;
+    tabCats.forEach(cat=>{
+      const cnt=activeTab==='websites'?D.websites.filter(w=>w.cat===cat).length:activeTab==='pdfs'?D.pdfs.filter(p=>p.cat===cat).length:D.checklists.filter(c=>c.cat===cat).length;
+      h+=`<div class="sb-item ${activeCat===cat?'active':''}" onclick="filterCat('${esc(cat)}')"><span class="sb-icon">›</span><span>${esc(cat)}</span><span class="sb-count">${cnt}</span></div>`;
+    });
+    h+=`</div>`;
+  }
+  document.getElementById('sidebar').innerHTML=h;
+}
+function filterCat(cat){activeCat=activeCat===cat?null:cat;render()}
+
+// ── Websites
+function renderWS(){
+  const q=(document.getElementById('ws-search')?.value||'').toLowerCase();
+  const data=D.websites.filter(w=>(!q||w.name.toLowerCase().includes(q)||(w.notes||'').toLowerCase().includes(q))&&(!activeCat||w.cat===activeCat));
+  const groups={};data.forEach(w=>{(groups[w.cat]=groups[w.cat]||[]).push(w)});
+  let h='';
+  Object.keys(groups).sort().forEach(cat=>{
+    h+=`<div class="grp-hdr">${esc(cat)}</div>`;
+    groups[cat].forEach(w=>{
+      h+=`<div class="site-row ${selectedSiteId===w.id?'selected':''}" onclick="loadSite('${w.id}')">
+        <div class="site-ico">${w.icon}</div>
+        <div class="site-info">
+          <div class="site-name">${esc(w.name)}</div>
+          <div class="site-note">${esc(w.notes||w.url)}</div>
+        </div>
+        <button class="site-del" onclick="delWS(event,'${w.id}')">✕</button>
+      </div>`;
+    });
+  });
+  if(!h) h=`<div class="empty" style="padding:30px 16px"><div class="empty-ico">🌐</div><h3>No websites</h3><p>Tap "+ Add Website" below to get started.</p></div>`;
+  document.getElementById('ws-body').innerHTML=h;
+}
+
+function loadSite(id){
+  const w=D.websites.find(x=>x.id===id); if(!w) return;
+  selectedSiteId=id; currentSiteURL=w.url;
+  renderWS();
+
+  // Show viewer bar
+  document.getElementById('viewer-bar').style.display='flex';
+  document.getElementById('viewer-title').textContent=w.name;
+  document.getElementById('viewer-url-lbl').textContent=w.url;
+
+  // Hide placeholder & blocked
+  document.getElementById('viewer-placeholder').style.display='none';
+  document.getElementById('viewer-blocked').style.display='none';
+
+  // Load iframe
+  const frame=document.getElementById('ws-frame');
+  frame.style.display='block';
+  frame.src=w.url;
+
+  // Detect block after short delay
+  clearTimeout(window._blockTimer);
+  window._blockTimer=setTimeout(()=>checkIfBlocked(w),3000);
+}
+
+function checkIfBlocked(w){
+  // Try to access contentDocument — if blocked, it'll be null or throw
+  const frame=document.getElementById('ws-frame');
+  try{
+    // If same-origin, this works. If cross-origin blocked, document is inaccessible.
+    // We detect by checking if the frame navigated to about:blank (browser fallback for blocked embeds)
+    const loc=frame.contentWindow.location.href;
+    if(loc==='about:blank'){showBlocked(w)}
+  } catch(e){
+    // Cross-origin: can't read location — site loaded cross-origin (probably OK) OR was blocked
+    // We can't distinguish perfectly, so we don't show blocked for cross-origin
+  }
+}
+
+function onFrameLoad(frame){
+  try{
+    const loc=frame.contentWindow.location.href;
+    if(loc==='about:blank' && currentSiteURL){
+      const w=D.websites.find(x=>x.url===currentSiteURL);
+      if(w) showBlocked(w);
+    }
+  }catch(e){/* cross-origin — site loaded fine */}
+}
+
+function showBlocked(w){
+  document.getElementById('ws-frame').style.display='none';
+  document.getElementById('viewer-blocked').style.display='flex';
+  if(w) document.getElementById('blocked-name').textContent=w.name+' cannot be embedded';
+}
+
+function openCurrentExt(){ if(currentSiteURL) window.open(currentSiteURL,'_blank') }
+
+function delWS(e,id){
+  e.stopPropagation();if(!confirm('Remove website?'))return;
+  if(selectedSiteId===id){ selectedSiteId=null; resetViewer(); }
+  D.websites=D.websites.filter(w=>w.id!==id);save();render();
+}
+
+function resetViewer(){
+  document.getElementById('viewer-bar').style.display='none';
+  document.getElementById('ws-frame').style.display='none';
+  document.getElementById('viewer-blocked').style.display='none';
+  document.getElementById('viewer-placeholder').style.display='flex';
+  document.getElementById('ws-frame').src='about:blank';
+  currentSiteURL='';
+}
+
+function saveWS(){
+  const name=document.getElementById('wn').value.trim(),url=document.getElementById('wu').value.trim();
+  if(!name||!url){alert('Name and URL required.');return}
+  let u=url;if(!u.startsWith('http'))u='https://'+u;
+  D.websites.push({id:uid(),name,url:u,cat:document.getElementById('wcat').value,icon:selIcon,notes:document.getElementById('wno').value.trim()});
+  save();render();closeModal('modal-ws');['wn','wu','wno'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ── PDFs
+function renderPDF(){
+  const q=(document.getElementById('pdf-search')?.value||'').toLowerCase();
+  const data=D.pdfs.filter(p=>(!q||p.name.toLowerCase().includes(q)||(p.notes||'').toLowerCase().includes(q))&&(!activeCat||p.cat===activeCat));
+  const groups={};data.forEach(p=>{(groups[p.cat]=groups[p.cat]||[]).push(p)});
+  let h='';
+  Object.keys(groups).sort().forEach(cat=>{
+    h+=`<div class="grp-hdr">${esc(cat)}</div>`;
+    groups[cat].forEach(p=>{
+      h+=`<div class="pdf-row ${selectedPDFId===p.id?'selected':''}" onclick="loadPDF('${p.id}')">
+        <div class="pdf-ico">📄<span class="pdf-ext">PDF</span></div>
+        <div class="site-info">
+          <div class="site-name">${esc(p.name)}</div>
+          <div class="site-note">${esc(p.notes||p.url)}</div>
+        </div>
+        <button class="site-del" onclick="delPDF(event,'${p.id}')">✕</button>
+      </div>`;
+    });
+  });
+  if(!h) h=`<div class="empty" style="padding:30px 16px"><div class="empty-ico">📄</div><h3>No PDFs yet</h3><p>Add links to online PDFs — POHs, approach plates & charts.</p></div>`;
+  document.getElementById('pdf-body').innerHTML=h;
+}
+
+function getDriveEmbedURL(url){
+  // Handles all common Google Drive share link formats and converts to direct embed
+  // Format 1: /file/d/FILE_ID/view  → /file/d/FILE_ID/preview
+  // Format 2: /file/d/FILE_ID/preview (already correct)
+  // Format 3: open?id=FILE_ID  → /file/d/FILE_ID/preview
+  // Format 4: drive.google.com/uc?id=FILE_ID → /file/d/FILE_ID/preview
+  let m;
+  m=url.match(/drive\.google\.com\/file\/d\/([^\/\?]+)/);
+  if(m) return 'https://drive.google.com/file/d/'+m[1]+'/preview';
+  m=url.match(/[?&]id=([^&]+)/);
+  if(m) return 'https://drive.google.com/file/d/'+m[1]+'/preview';
+  return null; // not a Drive link
+}
+
+function loadPDF(id){
+  const p=D.pdfs.find(x=>x.id===id); if(!p) return;
+  selectedPDFId=id; currentPDFURL=p.url;
+  renderPDF();
+  document.getElementById('pdf-viewer-bar').style.display='flex';
+  document.getElementById('pdf-viewer-title').textContent=p.name;
+  document.getElementById('pdf-viewer-url').textContent=p.url;
+  document.getElementById('pdf-placeholder').style.display='none';
+  const frame=document.getElementById('pdf-frame');
+  frame.style.display='block';
+
+  // Try Google Drive direct embed first
+  const driveURL=getDriveEmbedURL(p.url);
+  if(driveURL){
+    frame.src=driveURL;
+    return;
+  }
+  // For direct .pdf links, load straight in the iframe (works for most servers)
+  if(p.url.toLowerCase().includes('.pdf') || p.url.toLowerCase().includes('pdf')){
+    frame.src=p.url;
+    return;
+  }
+  // Fallback: Google Docs viewer
+  frame.src='https://docs.google.com/viewer?embedded=true&url='+encodeURIComponent(p.url);
+}
+
+function openCurrentPDFExt(){ if(currentPDFURL) window.open(currentPDFURL,'_blank') }
+
+function delPDF(e,id){
+  e.stopPropagation();if(!confirm('Remove PDF?'))return;
+  if(selectedPDFId===id){ selectedPDFId=null; document.getElementById('pdf-frame').style.display='none'; document.getElementById('pdf-placeholder').style.display='flex'; document.getElementById('pdf-viewer-bar').style.display='none'; }
+  D.pdfs=D.pdfs.filter(p=>p.id!==id);save();render();
+}
+
+function savePDF(){
+  const name=document.getElementById('pn').value.trim(),url=document.getElementById('pu').value.trim();
+  if(!name||!url){alert('Name and URL required.');return}
+  let u=url;if(!u.startsWith('http'))u='https://'+u;
+  D.pdfs.push({id:uid(),name,url:u,cat:document.getElementById('pcat').value,notes:document.getElementById('pno').value.trim()});
+  save();render();closeModal('modal-pdf');['pn','pu','pno'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ── Checklists
+function renderCL(){
+  const data=D.checklists.filter(c=>!activeCat||c.cat===activeCat);
+  const R=16,CIRC=2*Math.PI*R;
+  let h='';
+  if(!data.length){h=`<div class="empty"><div class="empty-ico">✅</div><h3>No checklists</h3><p>Create pre-flight, departure & arrival checklists for any aircraft.</p></div>`}
+  else data.forEach(cl=>{
+    const done=cl.items.filter(i=>i.done).length,tot=cl.items.length;
+    const pct=tot?done/tot:0,off=CIRC*(1-pct),isDone=done===tot&&tot>0;
+    const open=openCLs[cl.id];
+    h+=`<div class="cl-card">
+      <div class="cl-card-hdr ${open?'open':''}" onclick="toggleCL('${cl.id}')">
+        <div class="cl-info"><div class="cl-name">${esc(cl.name)}</div><div class="cl-meta">${esc(cl.cat)} &nbsp;·&nbsp; ${done} / ${tot} items</div></div>
+        <div class="cl-progress">
+          <svg width="38" height="38" viewBox="0 0 38 38"><circle class="prg-bg" cx="19" cy="19" r="${R}"/><circle class="prg-fg ${isDone?'done':''}" cx="19" cy="19" r="${R}" stroke-dasharray="${CIRC}" stroke-dashoffset="${off}"/></svg>
+          <div class="prg-txt">${Math.round(pct*100)}%</div>
+        </div>
+        <div class="cl-chevron ${open?'open':''}">▼</div>
+      </div>`;
+    if(open){
+      h+=`<div>`;
+      cl.items.forEach(it=>{h+=`<div class="cl-item ${it.done?'done':''}" onclick="toggleItem('${cl.id}','${it.id}')"><div class="check-ring">${it.done?'✓':''}</div><span class="cl-item-lbl">${esc(it.lbl)}</span></div>`});
+      h+=`</div><div class="cl-footer">
+        <button class="btn-ghost" onclick="addItem('${cl.id}')">＋ Item</button>
+        <button class="btn-ghost warn" onclick="resetCL('${cl.id}')">↺ Reset</button>
+        <button class="btn-ghost danger" onclick="delCL('${cl.id}')">Delete</button>
+      </div>`;
+    }
+    h+=`</div>`;
+  });
+  document.getElementById('cl-body').innerHTML=h;
+}
+
+function toggleCL(id){openCLs[id]=!openCLs[id];renderCL()}
+function toggleItem(clid,iid){const cl=D.checklists.find(c=>c.id===clid);if(!cl)return;const it=cl.items.find(i=>i.id===iid);if(it)it.done=!it.done;save();renderCL()}
+function resetCL(id){const cl=D.checklists.find(c=>c.id===id);if(!cl)return;cl.items.forEach(i=>i.done=false);save();renderCL()}
+function delCL(id){if(!confirm('Delete checklist?'))return;D.checklists=D.checklists.filter(c=>c.id!==id);save();render()}
+function addItem(clid){document.getElementById('item-clid').value=clid;document.getElementById('item-txt').value='';openModal('modal-item')}
+function saveItem(){const lbl=document.getElementById('item-txt').value.trim(),clid=document.getElementById('item-clid').value;if(!lbl)return;const cl=D.checklists.find(c=>c.id===clid);if(cl){cl.items.push({id:uid(),lbl,done:false});save();renderCL()}closeModal('modal-item')}
+function saveCL(){
+  const name=document.getElementById('cn').value.trim(),cat=document.getElementById('cc').value.trim()||'General';
+  if(!name){alert('Name required.');return}
+  const items=document.getElementById('ci').value.split('\n').map(s=>s.trim()).filter(Boolean).map(lbl=>({id:uid(),lbl,done:false}));
+  D.checklists.push({id:uid(),name,cat,items});save();render();closeModal('modal-cl');['cn','cc','ci'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ── Modals
+function openModal(id){document.getElementById(id).style.display='flex';if(id==='modal-ws')buildIconGrid()}
+function closeModal(id){document.getElementById(id).style.display='none'}
+function bgClose(e,id){if(e.target.id===id)closeModal(id)}
+function buildIconGrid(){selIcon=ICONS[0];document.getElementById('ws-icon-grid').innerHTML=ICONS.map(ic=>`<div class="icon-opt ${ic===selIcon?'sel':''}" onclick="pickIcon(this,'${ic}')">${ic}</div>`).join('')}
+function pickIcon(el,ic){selIcon=ic;document.querySelectorAll('.icon-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel')}
+
+// ── Master render
+function render(){buildSidebar();updateCount();if(activeTab==='websites')renderWS();else if(activeTab==='pdfs')renderPDF();else renderCL()}
+
+load();render();
+</script>
+</body>
+</html>
